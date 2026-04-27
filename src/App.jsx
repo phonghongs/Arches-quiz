@@ -16,6 +16,7 @@ const FORM_FIELDS = {
   age: "entry.1944132580",
   pronoun: "entry.924296976",
   birthDate: "entry.2064053006",
+  result: "entry.935845943",
 };
 
 const questions = [
@@ -178,7 +179,8 @@ export default function CoffeeQuiz() {
     birthDate: "",
   });
   const [formErrors, setFormErrors] = useState({});
-  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isSubmittingResult, setIsSubmittingResult] = useState(false);
+  const [submitStatus, setSubmitStatus] = useState("idle");
 
   const validateForm = () => {
     const errors = {};
@@ -204,15 +206,24 @@ export default function CoffeeQuiz() {
     return Object.keys(errors).length === 0;
   };
 
-  const submitToGoogleForm = async () => {
+  const getResultType = (scoreSet) =>
+    Object.keys(scoreSet).reduce((a, b) => (scoreSet[a] > scoreSet[b] ? a : b));
+
+  const submitToGoogleForm = async (resultType, scoreSet) => {
+    const result = results[resultType];
     const body = new URLSearchParams();
     body.append(FORM_FIELDS.fullName, formData.fullName);
     body.append(FORM_FIELDS.age, formData.age);
     body.append(FORM_FIELDS.pronoun, formData.pronoun);
     body.append(FORM_FIELDS.birthDate, formData.birthDate);
+    body.append(FORM_FIELDS.result, result.name);
 
     console.log("=== SUBMITTING TO GOOGLE FORM ===");
-    console.log("Data:", formData);
+    console.log("Data:", {
+      ...formData,
+      result: result.name,
+      scores: scoreSet,
+    });
 
     try {
       await fetch(GOOGLE_FORM_URL, {
@@ -229,20 +240,9 @@ export default function CoffeeQuiz() {
     }
   };
 
-  const handleFormSubmit = async () => {
+  const handleFormSubmit = () => {
     if (!validateForm()) return;
-    setIsSubmitting(true);
-
-    const startTime = Date.now();
-    await submitToGoogleForm();
-
-    const elapsed = Date.now() - startTime;
-    const remaining = Math.max(0, 800 - elapsed);
-
-    setTimeout(() => {
-      setIsSubmitting(false);
-      setScreen("quiz");
-    }, remaining);
+    setScreen("quiz");
   };
 
   const startQuiz = () => {
@@ -261,6 +261,14 @@ export default function CoffeeQuiz() {
         setCurrentQuestion(currentQuestion + 1);
       } else {
         setScreen("result");
+        setIsSubmittingResult(true);
+        setSubmitStatus("submitting");
+
+        const resultType = getResultType(newScores);
+        submitToGoogleForm(resultType, newScores).then((wasSubmitted) => {
+          setIsSubmittingResult(false);
+          setSubmitStatus(wasSubmitted ? "submitted" : "error");
+        });
       }
     }, 400);
   };
@@ -271,13 +279,12 @@ export default function CoffeeQuiz() {
     setScores({ espresso: 0, latte: 0, coldbrew: 0, caramel: 0 });
     setFormData({ fullName: "", age: "", pronoun: "", birthDate: "" });
     setFormErrors({});
+    setIsSubmittingResult(false);
+    setSubmitStatus("idle");
   };
 
   const getResult = () => {
-    const maxType = Object.keys(scores).reduce((a, b) =>
-      scores[a] > scores[b] ? a : b
-    );
-    return results[maxType];
+    return results[getResultType(scores)];
   };
 
   const progress = ((currentQuestion + 1) / questions.length) * 100;
@@ -439,26 +446,15 @@ export default function CoffeeQuiz() {
             <div className="pt-4 flex gap-3">
               <button
                 onClick={() => setScreen("welcome")}
-                disabled={isSubmitting}
                 className="flex-shrink-0 px-6 py-3 rounded-full font-semibold text-stone-600 border-2 border-stone-200 hover:bg-stone-50 transition-all disabled:opacity-50"
               >
                 Quay lại
               </button>
               <button
                 onClick={handleFormSubmit}
-                disabled={isSubmitting}
                 className="flex-1 bg-gradient-to-r from-amber-700 to-amber-900 text-white px-6 py-3 rounded-full font-semibold shadow-lg hover:shadow-xl hover:scale-[1.02] transition-all disabled:opacity-70 disabled:hover:scale-100 inline-flex items-center justify-center gap-2"
               >
-                {isSubmitting ? (
-                  <>
-                    <Loader2 className="w-5 h-5 animate-spin" />
-                    Đang lưu...
-                  </>
-                ) : (
-                  <>
-                    Tiếp tục <ChevronRight className="w-5 h-5" />
-                  </>
-                )}
+                Tiếp tục <ChevronRight className="w-5 h-5" />
               </button>
             </div>
 
@@ -600,6 +596,18 @@ export default function CoffeeQuiz() {
                 </div>
               ))}
             </div>
+          </div>
+
+          <div className="mb-6 text-sm text-stone-500 flex items-center justify-center gap-2 min-h-6">
+            {isSubmittingResult && (
+              <>
+                <Loader2 className="w-4 h-4 animate-spin" />
+                Saving result...
+              </>
+            )}
+            {submitStatus === "submitted" && "Result saved."}
+            {submitStatus === "error" &&
+              "Could not save result. Please try again later."}
           </div>
 
           <button
