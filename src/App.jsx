@@ -1,227 +1,288 @@
-import React, { useState } from "react";
+import React, { useMemo, useState } from "react";
 import {
-  Coffee,
+  ArrowRight,
+  Brain,
+  BriefcaseBusiness,
+  Check,
+  ClipboardList,
+  Loader2,
+  Mail,
+  Network,
   RotateCcw,
   Sparkles,
-  ChevronRight,
-  User,
-  Loader2,
+  Target,
+  UserRound,
+  Zap,
 } from "lucide-react";
+import logoUrl from "../logo.jpg";
 
-// Google Form config
 const GOOGLE_FORM_URL =
   "https://docs.google.com/forms/u/0/d/e/1FAIpQLSd1Qsn1LwcFAiTTT-hqi2pEgkhe8xEY1HgDMASzwNMgCqsweg/formResponse";
+
 const FORM_FIELDS = {
   fullName: "entry.1639203253",
-  age: "entry.1944132580",
-  pronoun: "entry.924296976",
-  birthDate: "entry.2064053006",
+  universityYear: "",
+  major: "",
+  email: "",
+  phone: "",
+  cvLink: "",
   result: "entry.935845943",
+};
+
+const yearOptions = ["1st year", "2nd year", "3rd year", "Final year", "Other"];
+
+const resultTypes = {
+  driver: {
+    key: "A",
+    icon: Zap,
+    name: "Driver",
+    headline: "Fast | Action | Results",
+    color: "orange",
+    accent: "bg-[#f79400]",
+    text: "text-[#f79400]",
+    border: "border-[#f79400]",
+    soft: "bg-orange-50",
+    ring: "ring-orange-100",
+    summary:
+      "You thrive in fast environments where speed, ownership, and outcomes matter more than overthinking.",
+    strengths: ["Decisive", "Momentum-focused", "Commercial", "Bold"],
+    roles: [
+      "Sales / Business Development",
+      "Startup / Founder track",
+      "Project / Delivery roles",
+      "Account Executive",
+      "Growth / Performance roles",
+    ],
+  },
+  thinker: {
+    key: "B",
+    icon: Brain,
+    name: "Thinker",
+    headline: "Logic | Depth | Insight",
+    color: "blue",
+    accent: "bg-blue-600",
+    text: "text-blue-700",
+    border: "border-blue-500",
+    soft: "bg-blue-50",
+    ring: "ring-blue-100",
+    summary:
+      "You enjoy solving complex problems and understanding how systems, people, and markets really work.",
+    strengths: ["Analytical", "Curious", "Strategic", "Insightful"],
+    roles: [
+      "Management Consulting",
+      "Data Analyst / Business Analyst",
+      "Product Strategy",
+      "Research roles",
+      "Finance / Investment Analyst",
+    ],
+  },
+  operator: {
+    key: "C",
+    icon: ClipboardList,
+    name: "Operator",
+    headline: "Structure | Order | Execution",
+    color: "teal",
+    accent: "bg-teal-600",
+    text: "text-teal-700",
+    border: "border-teal-500",
+    soft: "bg-teal-50",
+    ring: "ring-teal-100",
+    summary:
+      "You make sure things actually get done smoothly, reliably, and on time.",
+    strengths: ["Organized", "Reliable", "Process-minded", "Practical"],
+    roles: [
+      "Project Manager",
+      "Operations / BizOps",
+      "HR / Admin / People Ops",
+      "Supply Chain / Logistics",
+      "Program Coordinator",
+    ],
+  },
+  connector: {
+    key: "D",
+    icon: Network,
+    name: "Connector",
+    headline: "People | Trust | Communication",
+    color: "violet",
+    accent: "bg-violet-600",
+    text: "text-violet-700",
+    border: "border-violet-500",
+    soft: "bg-violet-50",
+    ring: "ring-violet-100",
+    summary:
+      "You work best through people, building trust, alignment, and relationships.",
+    strengths: ["Empathetic", "Persuasive", "Collaborative", "Warm"],
+    roles: [
+      "HR / Recruiting",
+      "Marketing / Branding",
+      "Client Success / Account Management",
+      "Community / Partnership roles",
+      "PR / Communications",
+    ],
+  },
 };
 
 const questions = [
   {
-    question: "Buổi sáng lý tưởng của bạn là gì?",
+    question: "You prefer work that is:",
     options: [
-      {
-        text: "Dậy sớm tập gym, chuẩn bị cho ngày mới đầy năng lượng",
-        type: "espresso",
-      },
-      { text: "Ăn sáng cùng gia đình, trò chuyện vui vẻ", type: "latte" },
-      { text: "Ngủ nướng rồi đi cafe một mình đọc sách", type: "coldbrew" },
-      {
-        text: "Thưởng thức bữa sáng đẹp mắt, chụp vài tấm ảnh",
-        type: "caramel",
-      },
+      { text: "Fast and results-driven", type: "driver" },
+      { text: "Deep and analytical", type: "thinker" },
+      { text: "Structured and organized", type: "operator" },
+      { text: "People-focused", type: "connector" },
     ],
   },
   {
-    question: "Cuối tuần bạn thường làm gì?",
+    question: "When facing a problem, you:",
     options: [
-      {
-        text: "Hoàn thành công việc còn dang dở hoặc học kỹ năng mới",
-        type: "espresso",
-      },
-      { text: "Gặp gỡ bạn bè, tổ chức tiệc nhỏ tại nhà", type: "latte" },
-      {
-        text: "Khám phá quán cafe mới hoặc đi du lịch một mình",
-        type: "coldbrew",
-      },
-      { text: "Đi mua sắm, xem phim tình cảm, làm bánh", type: "caramel" },
+      { text: "Act fast", type: "driver" },
+      { text: "Analyze it", type: "thinker" },
+      { text: "Make a plan", type: "operator" },
+      { text: "Discuss with people", type: "connector" },
     ],
   },
   {
-    question: "Khi gặp vấn đề khó khăn, bạn sẽ...?",
+    question: "You dislike:",
     options: [
-      {
-        text: "Phân tích nhanh và đưa ra quyết định dứt khoát",
-        type: "espresso",
-      },
-      { text: "Tìm người thân để chia sẻ và xin lời khuyên", type: "latte" },
-      {
-        text: "Dành thời gian suy nghĩ một mình để tìm giải pháp",
-        type: "coldbrew",
-      },
-      {
-        text: "Nghe nhạc, viết nhật ký để cảm xúc lắng xuống",
-        type: "caramel",
-      },
+      { text: "Slow progress", type: "driver" },
+      { text: "Confusion in thinking", type: "thinker" },
+      { text: "Chaos", type: "operator" },
+      { text: "Poor communication", type: "connector" },
     ],
   },
   {
-    question: "Thể loại phim yêu thích của bạn?",
+    question: "When learning something new, you:",
     options: [
-      { text: "Hành động, thriller, phim tài liệu", type: "espresso" },
-      { text: "Gia đình, hài kịch ấm áp", type: "latte" },
-      { text: "Indie, nghệ thuật, khoa học viễn tưởng", type: "coldbrew" },
-      { text: "Lãng mạn, hoạt hình, cổ trang", type: "caramel" },
+      { text: "Learn by doing", type: "driver" },
+      { text: "Study first", type: "thinker" },
+      { text: "Follow steps", type: "operator" },
+      { text: "Learn from others", type: "connector" },
     ],
   },
   {
-    question: "Màu sắc nào thu hút bạn nhất?",
+    question: "You want to be known as:",
     options: [
-      { text: "Đen, đỏ đậm, xám than", type: "espresso" },
-      { text: "Be, nâu sữa, xanh pastel", type: "latte" },
-      { text: "Xanh navy, xanh rêu, trắng lạnh", type: "coldbrew" },
-      { text: "Hồng, vàng kem, tím lavender", type: "caramel" },
-    ],
-  },
-  {
-    question: "Phong cách thời trang của bạn?",
-    options: [
-      { text: "Tối giản, mạnh mẽ, chất liệu cao cấp", type: "espresso" },
-      { text: "Thoải mái, dễ thương, basic dễ phối", type: "latte" },
-      { text: "Vintage, unisex, độc đáo khác biệt", type: "coldbrew" },
-      { text: "Nữ tính, nhiều chi tiết, màu ngọt ngào", type: "caramel" },
-    ],
-  },
-  {
-    question: "Bạn mô tả bản thân bằng một từ?",
-    options: [
-      { text: "Quyết đoán", type: "espresso" },
-      { text: "Ấm áp", type: "latte" },
-      { text: "Độc lập", type: "coldbrew" },
-      { text: "Mơ mộng", type: "caramel" },
+      { text: "Action-oriented", type: "driver" },
+      { text: "A smart problem-solver", type: "thinker" },
+      { text: "Reliable and structured", type: "operator" },
+      { text: "Good with people", type: "connector" },
     ],
   },
 ];
 
-const results = {
-  espresso: {
-    emoji: "☕",
-    name: "Espresso Enthusiast",
-    tagline: "Mạnh mẽ, đậm đà, không khoan nhượng",
-    description:
-      "Bạn là người năng động, quyết đoán và luôn hướng tới hiệu quả. Giống như một tách espresso đậm đặc, bạn không cần màu mè hay phô trương — sự mạnh mẽ và tinh túy của bạn tự nói lên tất cả.",
-    traits: ["Quyết đoán", "Tự tin", "Tham vọng", "Thẳng thắn", "Hiệu quả"],
-    gradient: "from-amber-900 via-stone-800 to-neutral-900",
-    accent: "bg-amber-900",
-    textAccent: "text-amber-100",
-  },
-  latte: {
-    emoji: "🥛",
-    name: "Latte Lover",
-    tagline: "Cân bằng, ấm áp, dễ gần",
-    description:
-      "Bạn là kiểu người hòa đồng, ấm áp và luôn mang đến cảm giác dễ chịu cho mọi người xung quanh. Như một ly latte mềm mại, bạn biết cách cân bằng giữa các mối quan hệ và tạo nên sự hài hòa trong cuộc sống.",
-    traits: ["Thân thiện", "Đồng cảm", "Cân bằng", "Chu đáo", "Đáng tin cậy"],
-    gradient: "from-amber-100 via-orange-100 to-rose-100",
-    accent: "bg-amber-700",
-    textAccent: "text-amber-900",
-  },
-  coldbrew: {
-    emoji: "🧊",
-    name: "Cold Brew Cool",
-    tagline: "Trầm tính, sâu sắc, khác biệt",
-    description:
-      "Bạn là người trầm tính, sáng tạo và yêu sự tự do. Giống như cold brew được ủ chậm suốt nhiều giờ, bạn có chiều sâu và sự độc đáo mà không phải ai cũng hiểu được ngay — nhưng ai hiểu rồi sẽ yêu mãi.",
-    traits: ["Sáng tạo", "Độc lập", "Sâu sắc", "Bình tĩnh", "Khác biệt"],
-    gradient: "from-slate-700 via-blue-900 to-slate-900",
-    accent: "bg-blue-900",
-    textAccent: "text-blue-100",
-  },
-  caramel: {
-    emoji: "🍯",
-    name: "Caramel Dreamer",
-    tagline: "Ngọt ngào, tinh tế, lãng mạn",
-    description:
-      "Bạn là người lãng mạn, mơ mộng và yêu những điều đẹp đẽ. Như một ly caramel macchiato ngọt ngào, bạn mang đến niềm vui và sự ấm áp cho cuộc sống, luôn tìm thấy vẻ đẹp trong những điều nhỏ bé nhất.",
-    traits: ["Lãng mạn", "Tinh tế", "Sáng tạo", "Nhạy cảm", "Lạc quan"],
-    gradient: "from-pink-200 via-rose-200 to-amber-200",
-    accent: "bg-rose-600",
-    textAccent: "text-rose-900",
-  },
+const baseScores = {
+  driver: 0,
+  thinker: 0,
+  operator: 0,
+  connector: 0,
 };
 
-const pronounOptions = [
-  "She/Her",
-  "He/Him",
-  "They/Them",
-  "Prefer not to say",
-  "Other (Please specify)",
-];
+const emptyForm = {
+  fullName: "",
+  universityYear: "",
+  major: "",
+  email: "",
+  phone: "",
+  cvLink: "",
+};
 
-export default function CoffeeQuiz() {
+const appendIfConfigured = (body, field, value) => {
+  if (field && value) body.append(field, value);
+};
+
+const getResultType = (scoreSet) => {
+  const priority = ["driver", "thinker", "operator", "connector"];
+  return priority.reduce((winner, type) =>
+    scoreSet[type] > scoreSet[winner] ? type : winner,
+  );
+};
+
+const inputClass = (hasError) =>
+  `w-full rounded-lg border bg-white px-4 py-3 text-sm text-slate-900 outline-none transition focus:ring-4 ${
+    hasError
+      ? "border-red-400 focus:ring-red-100"
+      : "border-slate-200 focus:border-[#f79400] focus:ring-orange-100"
+  }`;
+
+function BrandMark({ compact = false }) {
+  return (
+    <div className="flex items-center gap-3">
+      <img
+        src={logoUrl}
+        alt="Arches"
+        className={compact ? "h-9 w-9 object-contain" : "h-14 w-14 object-contain"}
+      />
+      <div>
+        <div className="font-serif text-2xl leading-none text-[#475156]">
+          Arches
+        </div>
+        {!compact && (
+          <div className="mt-1 text-xs font-semibold uppercase tracking-[0.22em] text-[#f79400]">
+            FutureQuest
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
+export default function FutureQuest() {
   const [screen, setScreen] = useState("welcome");
   const [currentQuestion, setCurrentQuestion] = useState(0);
-  const [scores, setScores] = useState({
-    espresso: 0,
-    latte: 0,
-    coldbrew: 0,
-    caramel: 0,
-  });
+  const [scores, setScores] = useState(baseScores);
   const [selectedOption, setSelectedOption] = useState(null);
-
-  const [formData, setFormData] = useState({
-    fullName: "",
-    age: "",
-    pronoun: "",
-    birthDate: "",
-  });
+  const [formData, setFormData] = useState(emptyForm);
   const [formErrors, setFormErrors] = useState({});
   const [isSubmittingResult, setIsSubmittingResult] = useState(false);
   const [submitStatus, setSubmitStatus] = useState("idle");
 
+  const progress = ((currentQuestion + 1) / questions.length) * 100;
+  const firstName = formData.fullName.trim().split(" ").pop();
+
+  const result = useMemo(() => resultsForScores(scores), [scores]);
+
+  function resultsForScores(scoreSet) {
+    return resultTypes[getResultType(scoreSet)];
+  }
+
+  const updateForm = (field, value) => {
+    setFormData((current) => ({ ...current, [field]: value }));
+  };
+
   const validateForm = () => {
     const errors = {};
-    if (!formData.fullName.trim()) errors.fullName = "Vui lòng nhập họ tên";
-    else if (formData.fullName.trim().length < 2)
-      errors.fullName = "Họ tên quá ngắn";
-
-    if (!formData.age.trim()) errors.age = "Vui lòng nhập tuổi";
-    else if (
-      isNaN(formData.age) ||
-      parseInt(formData.age) < 1 ||
-      parseInt(formData.age) > 120
-    )
-      errors.age = "Tuổi không hợp lệ";
-
-    if (!formData.pronoun) errors.pronoun = "Vui lòng chọn đại từ xưng hô";
-
-    if (!formData.birthDate) errors.birthDate = "Vui lòng chọn ngày sinh";
-    else if (new Date(formData.birthDate) > new Date())
-      errors.birthDate = "Ngày sinh không thể ở tương lai";
+    if (!formData.fullName.trim()) errors.fullName = "Please enter your full name.";
+    if (!formData.universityYear) errors.universityYear = "Please choose your university year.";
+    if (!formData.major.trim()) errors.major = "Please enter your major.";
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email.trim())) {
+      errors.email = "Please enter a valid email.";
+    }
+    if (!/^[0-9+\s().-]{8,}$/.test(formData.phone.trim())) {
+      errors.phone = "Please enter a valid phone number.";
+    }
+    if (formData.cvLink && !/^https?:\/\/\S+$/i.test(formData.cvLink.trim())) {
+      errors.cvLink = "Please paste a valid link starting with http or https.";
+    }
 
     setFormErrors(errors);
     return Object.keys(errors).length === 0;
   };
 
-  const getResultType = (scoreSet) =>
-    Object.keys(scoreSet).reduce((a, b) => (scoreSet[a] > scoreSet[b] ? a : b));
-
   const submitToGoogleForm = async (resultType, scoreSet) => {
-    const result = results[resultType];
+    const finalResult = resultTypes[resultType];
     const body = new URLSearchParams();
-    body.append(FORM_FIELDS.fullName, formData.fullName);
-    body.append(FORM_FIELDS.age, formData.age);
-    body.append(FORM_FIELDS.pronoun, formData.pronoun);
-    body.append(FORM_FIELDS.birthDate, formData.birthDate);
-    body.append(FORM_FIELDS.result, result.name);
 
-    console.log("=== SUBMITTING TO GOOGLE FORM ===");
-    console.log("Data:", {
+    appendIfConfigured(body, FORM_FIELDS.fullName, formData.fullName.trim());
+    appendIfConfigured(body, FORM_FIELDS.universityYear, formData.universityYear);
+    appendIfConfigured(body, FORM_FIELDS.major, formData.major.trim());
+    appendIfConfigured(body, FORM_FIELDS.email, formData.email.trim());
+    appendIfConfigured(body, FORM_FIELDS.phone, formData.phone.trim());
+    appendIfConfigured(body, FORM_FIELDS.cvLink, formData.cvLink.trim());
+    appendIfConfigured(body, FORM_FIELDS.result, finalResult.name);
+
+    console.log("Submitting FutureQuest response", {
       ...formData,
-      result: result.name,
+      result: finalResult.name,
       scores: scoreSet,
     });
 
@@ -232,10 +293,9 @@ export default function CoffeeQuiz() {
         headers: { "Content-Type": "application/x-www-form-urlencoded" },
         body: body.toString(),
       });
-      console.log("✅ Request sent successfully");
       return true;
     } catch (err) {
-      console.error("❌ Submit error:", err);
+      console.error("Submit error:", err);
       return false;
     }
   };
@@ -243,11 +303,6 @@ export default function CoffeeQuiz() {
   const handleFormSubmit = () => {
     if (!validateForm()) return;
     setScreen("quiz");
-  };
-
-  const startQuiz = () => {
-    setScreen("form");
-    setFormErrors({});
   };
 
   const handleAnswer = (type, index) => {
@@ -259,365 +314,478 @@ export default function CoffeeQuiz() {
 
       if (currentQuestion < questions.length - 1) {
         setCurrentQuestion(currentQuestion + 1);
-      } else {
-        setScreen("result");
-        setIsSubmittingResult(true);
-        setSubmitStatus("submitting");
-
-        const resultType = getResultType(newScores);
-        submitToGoogleForm(resultType, newScores).then((wasSubmitted) => {
-          setIsSubmittingResult(false);
-          setSubmitStatus(wasSubmitted ? "submitted" : "error");
-        });
+        return;
       }
-    }, 400);
+
+      const resultType = getResultType(newScores);
+      setScreen("result");
+      setIsSubmittingResult(true);
+      setSubmitStatus("submitting");
+      submitToGoogleForm(resultType, newScores).then((wasSubmitted) => {
+        setIsSubmittingResult(false);
+        setSubmitStatus(wasSubmitted ? "submitted" : "error");
+      });
+    }, 320);
   };
 
   const resetQuiz = () => {
     setScreen("welcome");
     setCurrentQuestion(0);
-    setScores({ espresso: 0, latte: 0, coldbrew: 0, caramel: 0 });
-    setFormData({ fullName: "", age: "", pronoun: "", birthDate: "" });
+    setScores(baseScores);
+    setSelectedOption(null);
+    setFormData(emptyForm);
     setFormErrors({});
     setIsSubmittingResult(false);
     setSubmitStatus("idle");
   };
 
-  const getResult = () => {
-    return results[getResultType(scores)];
-  };
-
-  const progress = ((currentQuestion + 1) / questions.length) * 100;
-
-  // === WELCOME SCREEN ===
   if (screen === "welcome") {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-amber-50 via-orange-50 to-rose-50 flex items-center justify-center p-6">
-        <div className="max-w-2xl w-full bg-white rounded-3xl shadow-2xl p-10 text-center">
-          <div className="inline-flex items-center justify-center w-20 h-20 bg-gradient-to-br from-amber-700 to-amber-900 rounded-full mb-6 shadow-lg">
-            <Coffee className="w-10 h-10 text-amber-50" />
-          </div>
-          <h1 className="text-4xl md:text-5xl font-bold text-stone-800 mb-4">
-            Bạn là kiểu người uống cà phê nào?
-          </h1>
-          <p className="text-stone-600 text-lg mb-2">
-            Khám phá tính cách của bạn qua 7 câu hỏi thú vị
-          </p>
-          <p className="text-stone-500 text-sm mb-8 flex items-center justify-center gap-2">
-            <Sparkles className="w-4 h-4" /> Chỉ mất 2 phút thôi!
-          </p>
-          <button
-            onClick={startQuiz}
-            className="bg-gradient-to-r from-amber-700 to-amber-900 text-white px-10 py-4 rounded-full font-semibold text-lg shadow-lg hover:shadow-xl hover:scale-105 transition-all duration-300 inline-flex items-center gap-2"
-          >
-            Bắt đầu ngay <ChevronRight className="w-5 h-5" />
-          </button>
-          <div className="mt-10 grid grid-cols-4 gap-3">
-            {Object.values(results).map((r, i) => (
-              <div key={i} className="text-center">
-                <div className="text-3xl mb-1">{r.emoji}</div>
-                <div className="text-xs text-stone-500">
-                  {r.name.split(" ")[0]}
+      <main className="min-h-screen bg-[#fffaf2] text-slate-900">
+        <section className="relative flex min-h-screen items-center overflow-hidden px-5 py-8">
+          <div className="absolute inset-x-0 top-0 h-2 bg-[#f79400]" />
+          <div className="absolute right-[-10%] top-[-16%] h-80 w-80 rounded-full border-[56px] border-orange-100/70" />
+          <div className="absolute bottom-[-18%] left-[-12%] h-96 w-96 rounded-full border-[72px] border-slate-100" />
+
+          <div className="relative mx-auto grid w-full max-w-6xl items-center gap-10 md:grid-cols-[1.1fr_0.9fr]">
+            <div>
+              <BrandMark />
+              <div className="mt-14 max-w-2xl">
+                <div className="mb-5 inline-flex items-center gap-2 rounded-full border border-orange-200 bg-white px-4 py-2 text-sm font-semibold text-[#b76400] shadow-sm">
+                  <Sparkles className="h-4 w-4" />
+                  FTU x RMIT Career Fair
+                </div>
+                <h1 className="text-5xl font-black leading-[1.02] tracking-normal text-[#3f474b] md:text-7xl">
+                  FutureQuest
+                </h1>
+                <p className="mt-5 max-w-xl text-lg leading-8 text-slate-600 md:text-xl">
+                  Discover your career working style in two minutes, then collect
+                  your Arches booth gift with your result.
+                </p>
+                <button
+                  onClick={() => setScreen("form")}
+                  className="mt-9 inline-flex min-h-14 items-center gap-3 rounded-lg bg-[#f79400] px-7 text-base font-bold text-white shadow-lg shadow-orange-200 transition hover:bg-[#e18200] hover:shadow-xl"
+                >
+                  Start Your Quest
+                  <ArrowRight className="h-5 w-5" />
+                </button>
+              </div>
+            </div>
+
+            <div className="rounded-2xl border border-orange-100 bg-white p-5 shadow-2xl shadow-orange-100/70">
+              <div className="rounded-xl bg-[#fff4df] p-5">
+                <div className="mb-5 flex items-center justify-between">
+                  <span className="text-sm font-bold uppercase tracking-[0.18em] text-[#f79400]">
+                    Career Profiles
+                  </span>
+                  <BriefcaseBusiness className="h-5 w-5 text-[#3f474b]" />
+                </div>
+                <div className="grid gap-3">
+                  {Object.values(resultTypes).map((item) => {
+                    const Icon = item.icon;
+                    return (
+                      <div
+                        key={item.name}
+                        className="flex items-center gap-4 rounded-lg bg-white p-4 shadow-sm"
+                      >
+                        <div
+                          className={`flex h-11 w-11 items-center justify-center rounded-lg ${item.accent} text-white`}
+                        >
+                          <Icon className="h-5 w-5" />
+                        </div>
+                        <div>
+                          <div className="font-bold text-[#3f474b]">
+                            {item.name}
+                          </div>
+                          <div className="text-sm text-slate-500">
+                            {item.headline}
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  })}
                 </div>
               </div>
-            ))}
+            </div>
           </div>
-        </div>
-      </div>
+        </section>
+      </main>
     );
   }
 
-  // === FORM SCREEN ===
   if (screen === "form") {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-amber-50 via-orange-50 to-rose-50 flex items-center justify-center p-6">
-        <div className="max-w-xl w-full bg-white rounded-3xl shadow-2xl p-8 md:p-10">
-          <div className="text-center mb-8">
-            <div className="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-br from-amber-700 to-amber-900 rounded-full mb-4 shadow-md">
-              <User className="w-8 h-8 text-amber-50" />
-            </div>
-            <h2 className="text-2xl md:text-3xl font-bold text-stone-800 mb-2">
-              Thông tin của bạn
+      <main className="min-h-screen bg-[#fffaf2] px-5 py-8 text-slate-900">
+        <div className="mx-auto flex w-full max-w-5xl items-center justify-between">
+          <BrandMark compact />
+          <span className="rounded-full bg-orange-100 px-4 py-2 text-sm font-bold text-[#a85f00]">
+            Step 1 of 3
+          </span>
+        </div>
+
+        <section className="mx-auto mt-8 grid w-full max-w-5xl gap-6 md:grid-cols-[0.8fr_1.2fr]">
+          <div className="rounded-2xl bg-[#3f474b] p-7 text-white">
+            <UserRound className="h-10 w-10 text-[#f79400]" />
+            <h2 className="mt-6 text-3xl font-black tracking-normal">
+              Your information
             </h2>
-            <p className="text-stone-500 text-sm">
-              Điền thông tin để bắt đầu hành trình khám phá
+            <p className="mt-4 leading-7 text-slate-200">
+              Share a few details so Arches can connect your FutureQuest result
+              with career opportunities after the fair.
             </p>
           </div>
 
-          <div className="space-y-5">
-            <div>
-              <label className="block text-sm font-semibold text-stone-700 mb-2">
-                Họ và tên <span className="text-rose-500">*</span>
-              </label>
-              <input
-                type="text"
-                value={formData.fullName}
-                onChange={(e) =>
-                  setFormData({ ...formData, fullName: e.target.value })
-                }
-                placeholder="Nguyễn Văn A"
-                className={`w-full px-4 py-3 rounded-xl border-2 transition-colors outline-none ${
-                  formErrors.fullName
-                    ? "border-rose-400 bg-rose-50"
-                    : "border-stone-200 focus:border-amber-700 bg-white"
-                }`}
-              />
-              {formErrors.fullName && (
-                <p className="text-rose-500 text-xs mt-1">
-                  {formErrors.fullName}
-                </p>
-              )}
-            </div>
-
-            <div>
-              <label className="block text-sm font-semibold text-stone-700 mb-2">
-                Tuổi <span className="text-rose-500">*</span>
-              </label>
-              <input
-                type="number"
-                min="1"
-                max="120"
-                value={formData.age}
-                onChange={(e) =>
-                  setFormData({ ...formData, age: e.target.value })
-                }
-                placeholder="25"
-                className={`w-full px-4 py-3 rounded-xl border-2 transition-colors outline-none ${
-                  formErrors.age
-                    ? "border-rose-400 bg-rose-50"
-                    : "border-stone-200 focus:border-amber-700 bg-white"
-                }`}
-              />
-              {formErrors.age && (
-                <p className="text-rose-500 text-xs mt-1">{formErrors.age}</p>
-              )}
-            </div>
-
-            <div>
-              <label className="block text-sm font-semibold text-stone-700 mb-2">
-                Đại từ xưng hô <span className="text-rose-500">*</span>
-              </label>
-              <div className="grid grid-cols-2 gap-2">
-                {pronounOptions.map((opt) => (
-                  <button
-                    key={opt}
-                    onClick={() => setFormData({ ...formData, pronoun: opt })}
-                    className={`px-3 py-2.5 rounded-xl border-2 text-sm font-medium transition-all ${
-                      formData.pronoun === opt
-                        ? "border-amber-700 bg-amber-50 text-amber-900"
-                        : "border-stone-200 text-stone-600 hover:border-amber-400"
-                    }`}
-                  >
-                    {opt}
-                  </button>
-                ))}
+          <div className="rounded-2xl border border-slate-100 bg-white p-6 shadow-xl shadow-slate-200/60 md:p-8">
+            <div className="grid gap-5 md:grid-cols-2">
+              <div className="md:col-span-2">
+                <label className="mb-2 block text-sm font-bold text-slate-700">
+                  Full name
+                </label>
+                <input
+                  className={inputClass(formErrors.fullName)}
+                  value={formData.fullName}
+                  onChange={(e) => updateForm("fullName", e.target.value)}
+                  placeholder="Your full name"
+                />
+                {formErrors.fullName && (
+                  <p className="mt-1 text-xs font-semibold text-red-500">
+                    {formErrors.fullName}
+                  </p>
+                )}
               </div>
-              {formErrors.pronoun && (
-                <p className="text-rose-500 text-xs mt-1">
-                  {formErrors.pronoun}
-                </p>
-              )}
+
+              <div>
+                <label className="mb-2 block text-sm font-bold text-slate-700">
+                  University year
+                </label>
+                <div className="grid gap-2">
+                  {yearOptions.map((year) => (
+                    <button
+                      key={year}
+                      onClick={() => updateForm("universityYear", year)}
+                      className={`rounded-lg border px-4 py-3 text-left text-sm font-semibold transition ${
+                        formData.universityYear === year
+                          ? "border-[#f79400] bg-orange-50 text-[#9a5800] ring-4 ring-orange-100"
+                          : "border-slate-200 text-slate-600 hover:border-orange-300"
+                      }`}
+                    >
+                      {year}
+                    </button>
+                  ))}
+                </div>
+                {formErrors.universityYear && (
+                  <p className="mt-1 text-xs font-semibold text-red-500">
+                    {formErrors.universityYear}
+                  </p>
+                )}
+              </div>
+
+              <div className="grid content-start gap-5">
+                <div>
+                  <label className="mb-2 block text-sm font-bold text-slate-700">
+                    Major
+                  </label>
+                  <input
+                    className={inputClass(formErrors.major)}
+                    value={formData.major}
+                    onChange={(e) => updateForm("major", e.target.value)}
+                    placeholder="Business, Marketing, Finance..."
+                  />
+                  {formErrors.major && (
+                    <p className="mt-1 text-xs font-semibold text-red-500">
+                      {formErrors.major}
+                    </p>
+                  )}
+                </div>
+
+                <div>
+                  <label className="mb-2 block text-sm font-bold text-slate-700">
+                    Email
+                  </label>
+                  <input
+                    className={inputClass(formErrors.email)}
+                    value={formData.email}
+                    onChange={(e) => updateForm("email", e.target.value)}
+                    placeholder="you@email.com"
+                    type="email"
+                  />
+                  {formErrors.email && (
+                    <p className="mt-1 text-xs font-semibold text-red-500">
+                      {formErrors.email}
+                    </p>
+                  )}
+                </div>
+
+                <div>
+                  <label className="mb-2 block text-sm font-bold text-slate-700">
+                    Phone number
+                  </label>
+                  <input
+                    className={inputClass(formErrors.phone)}
+                    value={formData.phone}
+                    onChange={(e) => updateForm("phone", e.target.value)}
+                    placeholder="+84..."
+                    inputMode="tel"
+                  />
+                  {formErrors.phone && (
+                    <p className="mt-1 text-xs font-semibold text-red-500">
+                      {formErrors.phone}
+                    </p>
+                  )}
+                </div>
+
+                <div>
+                  <label className="mb-2 block text-sm font-bold text-slate-700">
+                    CV link <span className="font-medium text-slate-400">optional</span>
+                  </label>
+                  <input
+                    className={inputClass(formErrors.cvLink)}
+                    value={formData.cvLink}
+                    onChange={(e) => updateForm("cvLink", e.target.value)}
+                    placeholder="https://drive.google.com/..."
+                  />
+                  {formErrors.cvLink && (
+                    <p className="mt-1 text-xs font-semibold text-red-500">
+                      {formErrors.cvLink}
+                    </p>
+                  )}
+                </div>
+              </div>
             </div>
 
-            <div>
-              <label className="block text-sm font-semibold text-stone-700 mb-2">
-                Ngày sinh <span className="text-rose-500">*</span>
-              </label>
-              <input
-                type="date"
-                value={formData.birthDate}
-                max={new Date().toISOString().split("T")[0]}
-                onChange={(e) =>
-                  setFormData({ ...formData, birthDate: e.target.value })
-                }
-                className={`w-full px-4 py-3 rounded-xl border-2 transition-colors outline-none ${
-                  formErrors.birthDate
-                    ? "border-rose-400 bg-rose-50"
-                    : "border-stone-200 focus:border-amber-700 bg-white"
-                }`}
-              />
-              {formErrors.birthDate && (
-                <p className="text-rose-500 text-xs mt-1">
-                  {formErrors.birthDate}
-                </p>
-              )}
-            </div>
-
-            <div className="pt-4 flex gap-3">
+            <div className="mt-7 flex gap-3">
               <button
                 onClick={() => setScreen("welcome")}
-                className="flex-shrink-0 px-6 py-3 rounded-full font-semibold text-stone-600 border-2 border-stone-200 hover:bg-stone-50 transition-all disabled:opacity-50"
+                className="rounded-lg border border-slate-200 px-5 py-3 font-bold text-slate-600 transition hover:bg-slate-50"
               >
-                Quay lại
+                Back
               </button>
               <button
                 onClick={handleFormSubmit}
-                className="flex-1 bg-gradient-to-r from-amber-700 to-amber-900 text-white px-6 py-3 rounded-full font-semibold shadow-lg hover:shadow-xl hover:scale-[1.02] transition-all disabled:opacity-70 disabled:hover:scale-100 inline-flex items-center justify-center gap-2"
+                className="inline-flex flex-1 items-center justify-center gap-2 rounded-lg bg-[#f79400] px-5 py-3 font-bold text-white transition hover:bg-[#e18200]"
               >
-                Tiếp tục <ChevronRight className="w-5 h-5" />
+                Continue
+                <ArrowRight className="h-5 w-5" />
               </button>
             </div>
-
-            <p className="text-xs text-stone-400 text-center pt-2">
-              🔒 Thông tin của bạn sẽ được lưu trữ an toàn
-            </p>
           </div>
-        </div>
-      </div>
+        </section>
+      </main>
     );
   }
 
-  // === QUIZ SCREEN ===
   if (screen === "quiz") {
     const q = questions[currentQuestion];
-    const firstName = formData.fullName.trim().split(" ").pop();
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-amber-50 via-orange-50 to-rose-50 flex items-center justify-center p-6">
-        <div className="max-w-2xl w-full">
-          <div className="mb-6">
-            <div className="flex justify-between items-center mb-2">
-              <span className="text-sm font-medium text-stone-600">
-                {firstName && currentQuestion === 0 && (
-                  <span className="text-amber-800">Chào {firstName}! </span>
-                )}
-                Câu {currentQuestion + 1} / {questions.length}
-              </span>
-              <span className="text-sm font-medium text-amber-800">
-                {Math.round(progress)}%
-              </span>
-            </div>
-            <div className="w-full bg-stone-200 rounded-full h-2 overflow-hidden">
-              <div
-                className="bg-gradient-to-r from-amber-600 to-amber-800 h-full rounded-full transition-all duration-500 ease-out"
-                style={{ width: `${progress}%` }}
-              />
-            </div>
-          </div>
 
-          <div className="bg-white rounded-3xl shadow-xl p-8 md:p-10">
-            <h2 className="text-2xl md:text-3xl font-bold text-stone-800 mb-8 leading-snug">
-              {q.question}
-            </h2>
-            <div className="space-y-3">
-              {q.options.map((opt, i) => (
-                <button
-                  key={i}
-                  onClick={() => handleAnswer(opt.type, i)}
-                  disabled={selectedOption !== null}
-                  className={`w-full text-left p-4 md:p-5 rounded-2xl border-2 transition-all duration-300 ${
-                    selectedOption === i
-                      ? "border-amber-700 bg-amber-50 scale-[1.02]"
-                      : "border-stone-200 hover:border-amber-400 hover:bg-amber-50/50"
-                  } ${
-                    selectedOption !== null && selectedOption !== i
-                      ? "opacity-40"
-                      : ""
+    return (
+      <main className="min-h-screen bg-[#fffaf2] px-5 py-8 text-slate-900">
+        <div className="mx-auto flex w-full max-w-4xl items-center justify-between">
+          <BrandMark compact />
+          <span className="rounded-full bg-orange-100 px-4 py-2 text-sm font-bold text-[#a85f00]">
+            Step 2 of 3
+          </span>
+        </div>
+
+        <section className="mx-auto mt-8 w-full max-w-4xl">
+          <div className="mb-6">
+            <div className="mb-3 flex items-center justify-between text-sm font-bold text-slate-600">
+              <span>
+                {firstName ? `Hi ${firstName}, ` : ""}
+                Question {currentQuestion + 1} / {questions.length}
+              </span>
+              <span>{Math.round(progress)}%</span>
+            </div>
+            <div className="grid grid-cols-5 gap-2">
+              {questions.map((_, index) => (
+                <div
+                  key={index}
+                  className={`h-2 rounded-full ${
+                    index <= currentQuestion ? "bg-[#f79400]" : "bg-slate-200"
                   }`}
-                >
-                  <div className="flex items-start gap-3">
-                    <div
-                      className={`flex-shrink-0 w-6 h-6 rounded-full border-2 mt-0.5 ${
-                        selectedOption === i
-                          ? "border-amber-700 bg-amber-700"
-                          : "border-stone-300"
-                      }`}
-                    />
-                    <span className="text-stone-700 text-base md:text-lg">
-                      {opt.text}
-                    </span>
-                  </div>
-                </button>
+                />
               ))}
             </div>
           </div>
-        </div>
-      </div>
+
+          <div className="rounded-2xl border border-slate-100 bg-white p-6 shadow-xl shadow-slate-200/60 md:p-9">
+            <div className="mb-8 flex items-start gap-4">
+              <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-lg bg-[#3f474b] text-white">
+                <Target className="h-6 w-6" />
+              </div>
+              <h2 className="text-3xl font-black leading-tight tracking-normal text-[#3f474b] md:text-4xl">
+                {q.question}
+              </h2>
+            </div>
+
+            <div className="grid gap-3 md:grid-cols-2">
+              {q.options.map((option, index) => {
+                const item = resultTypes[option.type];
+                const Icon = item.icon;
+                const isSelected = selectedOption === index;
+
+                return (
+                  <button
+                    key={option.text}
+                    onClick={() => handleAnswer(option.type, index)}
+                    disabled={selectedOption !== null}
+                    className={`group min-h-24 rounded-xl border-2 p-4 text-left transition ${
+                      isSelected
+                        ? `${item.border} ${item.soft} scale-[1.01] ring-4 ${item.ring}`
+                        : "border-slate-200 bg-white hover:border-orange-300 hover:bg-orange-50/50"
+                    } ${
+                      selectedOption !== null && !isSelected ? "opacity-40" : ""
+                    }`}
+                  >
+                    <div className="flex items-center gap-4">
+                      <div
+                        className={`flex h-12 w-12 shrink-0 items-center justify-center rounded-lg ${
+                          isSelected ? item.accent : "bg-slate-100"
+                        } ${isSelected ? "text-white" : "text-slate-500"}`}
+                      >
+                        {isSelected ? <Check className="h-5 w-5" /> : <Icon className="h-5 w-5" />}
+                      </div>
+                      <div>
+                        <div className="text-xs font-black uppercase tracking-[0.18em] text-slate-400">
+                          Option {item.key}
+                        </div>
+                        <div className="mt-1 text-lg font-bold text-[#3f474b]">
+                          {option.text}
+                        </div>
+                      </div>
+                    </div>
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+        </section>
+      </main>
     );
   }
 
-  // === RESULT SCREEN ===
-  const result = getResult();
-  const firstName = formData.fullName.trim().split(" ").pop();
+  const ResultIcon = result.icon;
+
   return (
-    <div
-      className={`min-h-screen bg-gradient-to-br ${result.gradient} flex items-center justify-center p-6 transition-all duration-700`}
-    >
-      <div className="max-w-2xl w-full bg-white/95 backdrop-blur rounded-3xl shadow-2xl p-8 md:p-10">
-        <div className="text-center">
-          <div className="text-7xl md:text-8xl mb-4 animate-bounce">
-            {result.emoji}
-          </div>
-          <div className="text-sm uppercase tracking-widest text-stone-500 mb-2">
-            {firstName ? `${firstName}, bạn là...` : "Bạn là..."}
-          </div>
-          <h1 className="text-4xl md:text-5xl font-bold text-stone-800 mb-3">
-            {result.name}
-          </h1>
-          <p className={`text-lg font-medium mb-6 ${result.textAccent}`}>
-            {result.tagline}
-          </p>
+    <main className="min-h-screen bg-[#3f474b] px-5 py-8 text-slate-900">
+      <div className="mx-auto flex w-full max-w-5xl items-center justify-between">
+        <div className="rounded-xl bg-white px-4 py-3 shadow-lg">
+          <BrandMark compact />
+        </div>
+        <span className="rounded-full bg-white/10 px-4 py-2 text-sm font-bold text-white">
+          Step 3 of 3
+        </span>
+      </div>
 
-          <div className="bg-stone-50 rounded-2xl p-6 mb-6 text-left">
-            <p className="text-stone-700 leading-relaxed">
-              {result.description}
-            </p>
+      <section className="mx-auto mt-8 grid w-full max-w-5xl gap-6 md:grid-cols-[1.1fr_0.9fr]">
+        <div className="rounded-2xl bg-white p-6 shadow-2xl md:p-8">
+          <div className="flex items-start justify-between gap-4">
+            <div>
+              <div className="text-sm font-black uppercase tracking-[0.22em] text-[#f79400]">
+                Your FutureQuest Type
+              </div>
+              <h1 className="mt-3 text-5xl font-black tracking-normal text-[#3f474b] md:text-6xl">
+                {result.name}
+              </h1>
+            </div>
+            <div
+              className={`flex h-16 w-16 shrink-0 items-center justify-center rounded-xl ${result.accent} text-white shadow-lg`}
+            >
+              <ResultIcon className="h-8 w-8" />
+            </div>
           </div>
 
-          <div className="mb-8">
-            <h3 className="text-sm uppercase tracking-widest text-stone-500 mb-3">
-              Đặc điểm nổi bật
-            </h3>
-            <div className="flex flex-wrap gap-2 justify-center">
-              {result.traits.map((trait, i) => (
+          <div className={`mt-7 rounded-xl ${result.soft} p-5`}>
+            <div className={`text-lg font-black ${result.text}`}>
+              {result.headline}
+            </div>
+            <p className="mt-3 leading-7 text-slate-700">{result.summary}</p>
+          </div>
+
+          <div className="mt-6">
+            <h2 className="text-sm font-black uppercase tracking-[0.18em] text-slate-400">
+              Signature strengths
+            </h2>
+            <div className="mt-3 flex flex-wrap gap-2">
+              {result.strengths.map((strength) => (
                 <span
-                  key={i}
-                  className={`${result.accent} text-white px-4 py-2 rounded-full text-sm font-medium shadow-sm`}
+                  key={strength}
+                  className="rounded-full border border-slate-200 px-4 py-2 text-sm font-bold text-[#3f474b]"
                 >
-                  {trait}
+                  {strength}
                 </span>
               ))}
             </div>
           </div>
 
-          <div className="border-t border-stone-200 pt-6">
-            <h3 className="text-sm uppercase tracking-widest text-stone-500 mb-3">
-              Điểm của bạn
-            </h3>
-            <div className="grid grid-cols-4 gap-2 mb-6">
-              {Object.entries(scores).map(([type, score]) => (
-                <div key={type} className="text-center">
-                  <div className="text-2xl mb-1">{results[type].emoji}</div>
-                  <div className="text-xs text-stone-500 mb-1">
-                    {results[type].name.split(" ")[0]}
-                  </div>
-                  <div className="text-lg font-bold text-stone-700">
-                    {score}
-                  </div>
+          <div className="mt-7 rounded-xl border border-orange-200 bg-orange-50 p-5">
+            <p className="font-bold text-[#8f5200]">
+              Screenshot this result and collect your gift at the Arches booth.
+            </p>
+          </div>
+        </div>
+
+        <div className="grid gap-6">
+          <div className="rounded-2xl bg-white p-6 shadow-2xl">
+            <h2 className="text-sm font-black uppercase tracking-[0.18em] text-slate-400">
+              Best-fit paths
+            </h2>
+            <div className="mt-4 grid gap-3">
+              {result.roles.map((role) => (
+                <div
+                  key={role}
+                  className="flex items-center gap-3 rounded-lg border border-slate-100 bg-slate-50 p-3"
+                >
+                  <BriefcaseBusiness className={`h-5 w-5 ${result.text}`} />
+                  <span className="font-semibold text-slate-700">{role}</span>
                 </div>
               ))}
             </div>
           </div>
 
-          <div className="mb-6 text-sm text-stone-500 flex items-center justify-center gap-2 min-h-6">
-            {isSubmittingResult && (
-              <>
-                <Loader2 className="w-4 h-4 animate-spin" />
-                Saving result...
-              </>
-            )}
-            {submitStatus === "submitted" && "Result saved."}
-            {submitStatus === "error" &&
-              "Could not save result. Please try again later."}
+          <div className="rounded-2xl bg-white p-6 shadow-2xl">
+            <h2 className="text-sm font-black uppercase tracking-[0.18em] text-slate-400">
+              Stay connected
+            </h2>
+            <div className="mt-4 grid gap-3 text-sm font-semibold text-slate-700">
+              <a
+                className="flex items-center gap-3 rounded-lg bg-slate-50 p-3 transition hover:bg-orange-50"
+                href="https://www.linkedin.com/company/arches-expert-network-service/"
+                target="_blank"
+                rel="noreferrer"
+              >
+                <Network className="h-5 w-5 text-[#f79400]" />
+                LinkedIn: Arches Expert Network Service
+              </a>
+              <a
+                className="flex items-center gap-3 rounded-lg bg-slate-50 p-3 transition hover:bg-orange-50"
+                href="mailto:recruitment@arches-global.com"
+              >
+                <Mail className="h-5 w-5 text-[#f79400]" />
+                recruitment@arches-global.com
+              </a>
+            </div>
+
+            <div className="mt-5 min-h-6 text-sm font-semibold text-slate-500">
+              {isSubmittingResult && (
+                <span className="inline-flex items-center gap-2">
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                  Saving result...
+                </span>
+              )}
+              {submitStatus === "submitted" && "Result saved."}
+              {submitStatus === "error" && "Could not save result."}
+            </div>
           </div>
 
           <button
             onClick={resetQuiz}
-            className="bg-gradient-to-r from-amber-700 to-amber-900 text-white px-8 py-3 rounded-full font-semibold shadow-lg hover:shadow-xl hover:scale-105 transition-all duration-300 inline-flex items-center gap-2"
+            className="inline-flex items-center justify-center gap-2 rounded-lg bg-[#f79400] px-5 py-4 font-bold text-white shadow-lg shadow-black/10 transition hover:bg-[#e18200]"
           >
-            <RotateCcw className="w-4 h-4" /> Làm lại quiz
+            <RotateCcw className="h-5 w-5" />
+            Start Again
           </button>
         </div>
-      </div>
-    </div>
+      </section>
+    </main>
   );
 }
