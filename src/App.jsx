@@ -276,10 +276,6 @@ export default function FutureQuest() {
     if (!/^[0-9+\s().-]{8,}$/.test(formData.phone.trim())) {
       errors.phone = "Please enter a valid phone number.";
     }
-    if (formData.cvLink && !/^https?:\/\/\S+$/i.test(formData.cvLink.trim())) {
-      errors.cvLink = "Please paste a valid link starting with http or https.";
-    }
-
     setFormErrors(errors);
     return Object.keys(errors).length === 0;
   };
@@ -558,7 +554,7 @@ export default function FutureQuest() {
                     className={inputClass(formErrors.cvLink)}
                     value={formData.cvLink}
                     onChange={(e) => updateForm("cvLink", e.target.value)}
-                    placeholder="https://drive.google.com/..."
+                    placeholder="CV link, portfolio, note, or anything you want to share"
                   />
                   {formErrors.cvLink && (
                     <p className="mt-1 text-xs font-semibold text-red-500">
