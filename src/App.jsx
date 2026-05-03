@@ -19,8 +19,6 @@ import logoUrl from "../logo.jpg";
 const GOOGLE_FORM_URL =
   "https://docs.google.com/forms/u/2/d/e/1FAIpQLSeJWpgk23B0CmyBE1cYfZgjHmIChtGZZB8uUjmzWOV8gxknjA/formResponse";
 
-const EMPTY_CV_PLACEHOLDER_URL = "https://example.com/not-provided";
-
 const FORM_FIELDS = {
   fullName: "entry.434265742",
   universityYear: "entry.1528278910",
@@ -295,11 +293,7 @@ export default function FutureQuest() {
     appendIfConfigured(body, FORM_FIELDS.major, formData.major.trim());
     appendIfConfigured(body, FORM_FIELDS.email, formData.email.trim());
     appendIfConfigured(body, FORM_FIELDS.phone, formData.phone.trim());
-    appendIfConfigured(
-      body,
-      FORM_FIELDS.cvLink,
-      formData.cvLink.trim() || EMPTY_CV_PLACEHOLDER_URL,
-    );
+    appendIfConfigured(body, FORM_FIELDS.cvLink, formData.cvLink.trim());
     appendIfConfigured(body, FORM_FIELDS.result, finalResult.name);
 
     console.log("Submitting FutureQuest response", {
