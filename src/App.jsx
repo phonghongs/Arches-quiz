@@ -17,7 +17,9 @@ import {
 import logoUrl from "../logo.jpg";
 
 const GOOGLE_FORM_URL =
-  "https://docs.google.com/forms/d/e/1FAIpQLSeJWpgk23B0CmyBE1cYfZgjHmIChtGZZB8uUjmzWOV8gxknjA/formResponse";
+  "https://docs.google.com/forms/u/2/d/e/1FAIpQLSeJWpgk23B0CmyBE1cYfZgjHmIChtGZZB8uUjmzWOV8gxknjA/formResponse";
+
+const EMPTY_CV_PLACEHOLDER_URL = "https://example.com/not-provided";
 
 const FORM_FIELDS = {
   fullName: "entry.434265742",
@@ -190,6 +192,18 @@ const appendIfConfigured = (body, field, value) => {
   if (field && value) body.append(field, value);
 };
 
+const appendUniversityYear = (body, value) => {
+  if (!FORM_FIELDS.universityYear || !value) return;
+
+  if (value === "Other") {
+    body.append(FORM_FIELDS.universityYear, "__other_option__");
+    body.append(`${FORM_FIELDS.universityYear}.other_option_response`, "Other");
+    return;
+  }
+
+  body.append(FORM_FIELDS.universityYear, value);
+};
+
 const getResultType = (scoreSet) => {
   const priority = ["driver", "thinker", "operator", "connector"];
   return priority.reduce((winner, type) =>
@@ -277,14 +291,14 @@ export default function FutureQuest() {
     const body = new URLSearchParams();
 
     appendIfConfigured(body, FORM_FIELDS.fullName, formData.fullName.trim());
-    appendIfConfigured(body, FORM_FIELDS.universityYear, formData.universityYear);
+    appendUniversityYear(body, formData.universityYear);
     appendIfConfigured(body, FORM_FIELDS.major, formData.major.trim());
     appendIfConfigured(body, FORM_FIELDS.email, formData.email.trim());
     appendIfConfigured(body, FORM_FIELDS.phone, formData.phone.trim());
     appendIfConfigured(
       body,
       FORM_FIELDS.cvLink,
-      formData.cvLink.trim() || "Not provided",
+      formData.cvLink.trim() || EMPTY_CV_PLACEHOLDER_URL,
     );
     appendIfConfigured(body, FORM_FIELDS.result, finalResult.name);
 
