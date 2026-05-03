@@ -17,16 +17,16 @@ import {
 import logoUrl from "../logo.jpg";
 
 const GOOGLE_FORM_URL =
-  "https://docs.google.com/forms/u/0/d/e/1FAIpQLSd1Qsn1LwcFAiTTT-hqi2pEgkhe8xEY1HgDMASzwNMgCqsweg/formResponse";
+  "https://docs.google.com/forms/d/e/1FAIpQLSeJWpgk23B0CmyBE1cYfZgjHmIChtGZZB8uUjmzWOV8gxknjA/formResponse";
 
 const FORM_FIELDS = {
-  fullName: "entry.1639203253",
-  universityYear: "",
-  major: "",
-  email: "",
-  phone: "",
-  cvLink: "",
-  result: "entry.935845943",
+  fullName: "entry.434265742",
+  universityYear: "entry.1528278910",
+  major: "entry.1676273028",
+  email: "entry.45904482",
+  phone: "entry.1104633233",
+  cvLink: "entry.175864868",
+  result: "entry.1662715008",
 };
 
 const yearOptions = ["1st year", "2nd year", "3rd year", "Final year", "Other"];
@@ -35,7 +35,7 @@ const resultTypes = {
   driver: {
     key: "A",
     icon: Zap,
-    name: "Driver",
+    name: "The Deadline Chaser",
     headline: "Fast | Action | Results",
     color: "orange",
     accent: "bg-[#f79400]",
@@ -57,7 +57,7 @@ const resultTypes = {
   thinker: {
     key: "B",
     icon: Brain,
-    name: "Thinker",
+    name: "The Overthinker (In a Good Way)",
     headline: "Logic | Depth | Insight",
     color: "blue",
     accent: "bg-blue-600",
@@ -79,7 +79,7 @@ const resultTypes = {
   operator: {
     key: "C",
     icon: ClipboardList,
-    name: "Operator",
+    name: "The System Builder",
     headline: "Structure | Order | Execution",
     color: "teal",
     accent: "bg-teal-600",
@@ -101,7 +101,7 @@ const resultTypes = {
   connector: {
     key: "D",
     icon: Network,
-    name: "Connector",
+    name: "The Group Chat Admin",
     headline: "People | Trust | Communication",
     color: "violet",
     accent: "bg-violet-600",
@@ -281,7 +281,11 @@ export default function FutureQuest() {
     appendIfConfigured(body, FORM_FIELDS.major, formData.major.trim());
     appendIfConfigured(body, FORM_FIELDS.email, formData.email.trim());
     appendIfConfigured(body, FORM_FIELDS.phone, formData.phone.trim());
-    appendIfConfigured(body, FORM_FIELDS.cvLink, formData.cvLink.trim());
+    appendIfConfigured(
+      body,
+      FORM_FIELDS.cvLink,
+      formData.cvLink.trim() || "Not provided",
+    );
     appendIfConfigured(body, FORM_FIELDS.result, finalResult.name);
 
     console.log("Submitting FutureQuest response", {
