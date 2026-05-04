@@ -495,13 +495,13 @@ export default function FutureQuest() {
               <div className="grid content-start gap-5">
                 <div>
                   <label className="mb-2 block text-sm font-bold text-slate-700">
-                    Major
+                    University (Major)
                   </label>
                   <input
                     className={inputClass(formErrors.major)}
                     value={formData.major}
                     onChange={(e) => updateForm("major", e.target.value)}
-                    placeholder="Business, Marketing, Finance..."
+                    placeholder="FTU (Business)/RMIT (Finance),..."
                   />
                   {formErrors.major && (
                     <p className="mt-1 text-xs font-semibold text-red-500">
